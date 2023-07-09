@@ -7,10 +7,10 @@ const db = async() =>{
 
     try {
         await mongoose.connect(dbUrl).then(() =>{
-            console.log('Db is successfully connected!!')
+            console.log('Conected to MongoDB')
         })
     } catch (error) {
-        console.error(error)
+        console.error(error, "Disconnected from MongoDB" )
     }
 }
 

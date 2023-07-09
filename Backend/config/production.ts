@@ -1,4 +1,4 @@
 export default {
-    port : 7070,
-    dbUri: "mongodb+srv://Godsent-Michael:Michy1253@cluster0.h2nsryw.mongodb.net/Scissor?retryWrites=true&w=majority"
+    port : 5000,
+    dbUri: "mongodb+srv://salad:salad@cluster0.ns2rl4f.mongodb.net/?retryWrites=true&w=majority",
 }
