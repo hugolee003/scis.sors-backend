@@ -2,8 +2,8 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "entrypoint": "server.ts",
+  "main": "server.ts",
+  
   "scripts": {
     "dev": "nodemon --config nodemon.json server.ts",
     "build": "tsc",
