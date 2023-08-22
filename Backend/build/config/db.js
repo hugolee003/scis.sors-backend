@@ -51,14 +51,14 @@ var db = function () { return __awaiter(void 0, void 0, void 0, function () {
             case 1:
                 _a.trys.push([1, 3, , 4]);
                 return [4 /*yield*/, mongoose_1.default.connect(dbUrl).then(function () {
-                        console.log('Db is successfully connected!!');
+                        console.log('Conected to MongoDB');
                     })];
             case 2:
                 _a.sent();
                 return [3 /*break*/, 4];
             case 3:
                 error_1 = _a.sent();
-                console.error(error_1);
+                console.error(error_1, "Disconnected from MongoDB");
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }

@@ -39,29 +39,45 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAnalytics = exports.handleRedirect = exports.createShortUrl = void 0;
+exports.qrCodeGeneration = exports.get1Analytics = exports.handleRedirect = exports.createShortUrl = void 0;
 var shortUrlModel_1 = __importDefault(require("../model/shortUrlModel"));
 var analyticsModel_1 = __importDefault(require("../model/analyticsModel"));
+var qrCodeGenerator_1 = require("../services/qrCodeGenerator");
+// To create a shortUrl
 var createShortUrl = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var destination, newUrl;
+    var destination, existingUrl, shortId, newUrl, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                _a.trys.push([0, 3, , 4]);
                 destination = req.body.destination;
-                return [4 /*yield*/, shortUrlModel_1.default.create({ destination: destination })];
+                return [4 /*yield*/, shortUrlModel_1.default.findOne({ destination: destination })];
             case 1:
+                existingUrl = _a.sent();
+                if (existingUrl) {
+                    shortId = existingUrl.shortId;
+                    return [2 /*return*/, res.status(409).json({ error: 'Custom URL already in use', shortId: shortId })];
+                }
+                return [4 /*yield*/, shortUrlModel_1.default.create({ destination: destination })];
+            case 2:
                 newUrl = _a.sent();
                 // Save the shortUrl to the database/ Return the shortUrl to the user
                 return [2 /*return*/, res.send(newUrl)];
+            case 3:
+                error_1 = _a.sent();
+                return [2 /*return*/, res.status(500).send({ message: "Internal server error" })];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.createShortUrl = createShortUrl;
+// To handle the redirect when a user clicks on the shortUrl
 var handleRedirect = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var shortId, shortID;
+    var shortId, shortID, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                _a.trys.push([0, 2, , 3]);
                 shortId = req.params.shortId;
                 return [4 /*yield*/, shortUrlModel_1.default.findOne({ shortId: shortId }).lean()];
             case 1:
@@ -69,30 +85,58 @@ var handleRedirect = function (req, res) { return __awaiter(void 0, void 0, void
                 if (!shortID)
                     return [2 /*return*/, res.sendStatus(404)];
                 analyticsModel_1.default.create({ shortUrl: shortID._id });
+                shortUrlModel_1.default.updateOne({ shortId: shortId }, { $inc: { clickCount: 1 } }).exec();
                 return [2 /*return*/, res.redirect(shortID.destination)];
+            case 2:
+                error_2 = _a.sent();
+                return [2 /*return*/, res.status(500).send({ message: "Internal server error" })];
+            case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.handleRedirect = handleRedirect;
-var getAnalytics = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var data;
+var get1Analytics = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var shortUrlId, data;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, analyticsModel_1.default.find({}).lean()];
+            case 0:
+                shortUrlId = req.params.shortUrlId;
+                return [4 /*yield*/, analyticsModel_1.default.find({ shortUrl: shortUrlId }).lean()];
             case 1:
                 data = _a.sent();
-                return [2 /*return*/];
+                // const data = await analytics.find({}).lean()
+                return [2 /*return*/, res.send(data)];
         }
     });
 }); };
-exports.getAnalytics = getAnalytics;
-// export const updateShortUrl = async (req: Request, res: Response) => {
-//     // Get the shortId and destination from the request body
-//     const {shortId, destination} = req.body;
-//     // Find the shortUrl with the shortId
-//     const url = await shortUrl.findOne({shortId});
-//     // Update the destination of the shortUrl
-//     url.destination = destination;
-//     // Save the updated shortUrl to the database/ Return the updated shortUrl to the user
-//     return res.send(await url.save());
-// }
+exports.get1Analytics = get1Analytics;
+var qrCodeGeneration = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var shortId, shortID, qrCode, error_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                shortId = req.params.shortId;
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 4, , 5]);
+                return [4 /*yield*/, shortUrlModel_1.default.findOne({ shortId: shortId }).lean()];
+            case 2:
+                shortID = _a.sent();
+                if (!shortID)
+                    return [2 /*return*/, res.sendStatus(404)];
+                return [4 /*yield*/, (0, qrCodeGenerator_1.generateQRCode)(shortID.destination)];
+            case 3:
+                qrCode = _a.sent();
+                res.type('png').send(qrCode);
+                res.status(200);
+                return [3 /*break*/, 5];
+            case 4:
+                error_3 = _a.sent();
+                console.log('Error generating QR code:', error_3);
+                res.status(500);
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.qrCodeGeneration = qrCodeGeneration;

@@ -40,11 +40,59 @@ var shortUrlSchema = new mongoose_1.default.Schema({
         required: true,
         default: function () { return nanoid(); },
     },
+    customId: {
+        type: String,
+        unique: true,
+        required: true,
+        default: function () { return nanoid(); },
+    },
     destination: {
         type: String,
         required: true,
+    },
+    // analytics: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: 'analytics',
+    //     required: true,
+    // },
+    // I want to see number of clicks.
+    clickCount: {
+        type: Number,
+        required: true,
+        default: 0,
     },
 });
 //create a mongoose model
 var shortUrl = mongoose_1.default.model('shortUrl', shortUrlSchema);
 exports.default = shortUrl;
+// import mongoose from 'mongoose';
+// interface ShortUrl extends mongoose.Document {
+//   destination: string;
+//   shortId: string;
+// }
+// const shortUrlSchema = new mongoose.Schema<ShortUrl>(
+//   {
+//     destination: {
+//       type: String,
+//       required: true,
+//     },
+//     shortId: {
+//       type: String,
+//       required: true,
+//       unique: true,
+//       default: () => {
+//         let randomChars = '';
+//         const possibleChars =
+//           'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+//         for (let i = 0; i < 6; i++) {
+//           randomChars += possibleChars.charAt(
+//             Math.floor(Math.random() * possibleChars.length)
+//           );
+//         }
+//         return `https://slice.ly/${randomChars}`;
+//       },
+//     },
+//   },
+//   { timestamps: true }
+// );
+// export default mongoose.model<ShortUrl>('shortUrl', shortUrlSchema);

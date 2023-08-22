@@ -25,6 +25,7 @@ export const createCustomUrl = async (req: Request, res: Response) => {
 
 export const handleCustomRedirect = async (req: Request, res: Response) => {
   const { customId } = req.params;
+  console.log(customId);
 
   // Find the shortCustomUrl with the customId
   const customURL = await shortUrl.findOne({ customId }).lean();

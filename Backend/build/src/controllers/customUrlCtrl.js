@@ -35,38 +35,52 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-var validateResource = function (resourceSchema) {
-    return function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-        var destination, urlPattern, error_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, resourceSchema.validate({
-                            body: req.body,
-                            query: req.query,
-                            params: req.params,
-                        }, {
-                            abortEarly: false,
-                            strict: true,
-                            context: req.body, // Set the context to the request body
-                        })];
-                case 1:
-                    _a.sent();
-                    destination = req.body.destination;
-                    urlPattern = /^(?:https?:\/\/)?([^\s.]+\.\S{2,}|localhost)(?:\/[^\s]*)?(?:\.com)?$/;
-                    if (!urlPattern.test(destination)) {
-                        return [2 /*return*/, res.status(400).json({ error: 'Invalid destination URL' })];
-                    }
-                    next();
-                    return [3 /*break*/, 3];
-                case 2:
-                    error_1 = _a.sent();
-                    return [2 /*return*/, res.status(400).send(error_1)];
-                case 3: return [2 /*return*/];
-            }
-        });
-    }); };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.default = validateResource;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.handleCustomRedirect = exports.createCustomUrl = void 0;
+var shortUrlModel_1 = __importDefault(require("../model/shortUrlModel"));
+var analyticsModel_1 = __importDefault(require("../model/analyticsModel"));
+//Users must have registered their domain name.
+var createCustomUrl = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var destination, existingUrl, shortId, newUrl;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                destination = req.body.destination;
+                return [4 /*yield*/, shortUrlModel_1.default.findOne({ destination: destination })];
+            case 1:
+                existingUrl = _a.sent();
+                if (existingUrl) {
+                    shortId = existingUrl.shortId;
+                    return [2 /*return*/, res.status(409).json({ error: 'Custom URL already in use', shortId: shortId })];
+                }
+                return [4 /*yield*/, shortUrlModel_1.default.create({ destination: destination })];
+            case 2:
+                newUrl = _a.sent();
+                return [2 /*return*/, res.send(newUrl)];
+        }
+    });
+}); };
+exports.createCustomUrl = createCustomUrl;
+var handleCustomRedirect = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var customId, customURL;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                customId = req.params.customId;
+                return [4 /*yield*/, shortUrlModel_1.default.findOne({ customId: customId }).lean()];
+            case 1:
+                customURL = _a.sent();
+                // TODO: Check if the customId is already in use
+                // TODO: If the destination exists already then pull out the shortId ataached to that destination
+                if (!customURL) {
+                    return [2 /*return*/, res.status(404).send({ message: "custom URL not found" })];
+                }
+                analyticsModel_1.default.create({ customUrl: customURL._id });
+                return [2 /*return*/, res.redirect(customURL.destination)];
+        }
+    });
+}); };
+exports.handleCustomRedirect = handleCustomRedirect;
